@@ -1,0 +1,82 @@
+import tkinter as tk
+from tkinter import ttk, messagebox
+
+class OrderTrackingApp(tk.Tk):
+    def __init__(self):
+        super().__init__()
+        self.title("📦 Order Tracking System")
+        self.geometry("700x500")
+        self.configure(bg="#f5f7fa")
+
+        # Apply modern ttk theme
+        style = ttk.Style(self)
+        style.theme_use("clam")
+
+        style.configure("TLabel", background="#f5f7fa", font=("Segoe UI", 11))
+        style.configure("TEntry", padding=5, font=("Segoe UI", 11))
+        style.configure("TButton", padding=6, font=("Segoe UI", 11, "bold"), relief="flat", background="#0078d7", foreground="white")
+        style.map("TButton",
+                  background=[("active", "#005a9e")],
+                  foreground=[("active", "white")])
+
+        # Header
+        header = tk.Label(self, text="Order Tracking Dashboard", font=("Segoe UI", 18, "bold"), bg="#0078d7", fg="white", pady=15)
+        header.pack(fill="x")
+
+        # Input frame
+        input_frame = tk.Frame(self, bg="#f5f7fa", pady=20)
+        input_frame.pack(fill="x", padx=20)
+
+        ttk.Label(input_frame, text="Order ID:").grid(row=0, column=0, sticky="w", padx=5, pady=5)
+        self.order_id_var = tk.StringVar()
+        order_entry = ttk.Entry(input_frame, textvariable=self.order_id_var, width=30)
+        order_entry.grid(row=0, column=1, padx=5, pady=5)
+
+        ttk.Button(input_frame, text="Track Order", command=self.track_order).grid(row=0, column=2, padx=10)
+
+        # Treeview for results
+        self.tree = ttk.Treeview(self, columns=("id", "status", "expected"), show="headings", height=12)
+        self.tree.heading("id", text="Order ID")
+        self.tree.heading("status", text="Status")
+        self.tree.heading("expected", text="Expected Delivery")
+
+        self.tree.column("id", anchor="center", width=120)
+        self.tree.column("status", anchor="center", width=200)
+        self.tree.column("expected", anchor="center", width=200)
+        self.tree.pack(padx=20, pady=10, fill="both", expand=True)
+
+        # Dummy data
+        self.orders = {
+            "ORD1001": {"status": "Shipped", "expected": "2025-09-22"},
+            "ORD1002": {"status": "Processing", "expected": "2025-09-25"},
+            "ORD1003": {"status": "Delivered", "expected": "2025-09-18"},
+            "ORD1004": {"status": "Pending Payment", "expected": "—"},
+        }
+
+        # Preload data
+        self.load_all_orders()
+
+    def load_all_orders(self):
+        for order_id, details in self.orders.items():
+            self.tree.insert("", "end", values=(order_id, details["status"], details["expected"]))
+
+    def track_order(self):
+        order_id = self.order_id_var.get().strip()
+        if not order_id:
+            messagebox.showwarning("Input Error", "Please enter an Order ID.")
+            return
+
+        for i in self.tree.get_children():
+            self.tree.delete(i)
+
+        if order_id in self.orders:
+            details = self.orders[order_id]
+            self.tree.insert("", "end", values=(order_id, details["status"], details["expected"]))
+        else:
+            messagebox.showinfo("Not Found", f"No order found with ID: {order_id}")
+            self.load_all_orders()
+
+
+if __name__ == "__main__":
+    app = OrderTrackingApp()
+    app.mainloop()
